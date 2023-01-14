@@ -8,6 +8,12 @@ class BitString;
 
 //使用BitBuffer时不要直接使用这个类，而是使用它的两个子类（Input/OutputBitBuffer）
 class BitBuffer{
+	private:
+		//辅助常量和函数
+		static const int ByteLen;
+		int gcd(int n1, int n2);
+		void setBufferLength();
+	
 	protected:
 		char* data;
 		int fitLength;
@@ -22,9 +28,12 @@ class BitBuffer{
 		
 		//获取信息
 		int getFitLength();
+		int getBufferLength();
+		//设置适配长度
+		void setFitLength(int fitLength);
 		//调试函数
 		std::string getBuffer();
-		void setBuffer(std::string bits);
+		bool setBuffer(std::string bits);
 		
 		//析构函数
 		~BitBuffer(); 
