@@ -7,6 +7,13 @@
 //这个类只能依靠BitBuffer进行赋值取值
 class BitString{
 	private:
+		//辅助常量和辅助函数
+		static const int ByteLen;
+		inline int getByteLen(int bitLen){
+			return bitLen%ByteLen==0 ? bitLen/ByteLen : bitLen/ByteLen+1;
+		}
+	
+	private:
 		char* data;		
 		int  bitLength;
 

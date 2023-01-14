@@ -3,11 +3,11 @@
 #include"bitException.h"
 using namespace std;
 
-//辅助变量和辅助函数
-const int ByteLen=8;
-inline int getByteLen(int bitLen){
-    return bitLen%ByteLen==0 ? bitLen/ByteLen : bitLen/ByteLen+1;
-}
+/*--------------------------------------------
+作用：
+    指示一个字节的大小
+--------------------------------------------*/ 
+const int BitString::ByteLen=8;
 
 /*--------------------------------------------
 作用：
