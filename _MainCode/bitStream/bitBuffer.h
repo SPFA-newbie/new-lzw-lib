@@ -122,7 +122,7 @@ class BitBuffer{
 
 class InputBitBuffer : public BitBuffer{
 	private:		
-		std::ifstream& read;
+		std::ifstream* read;
 
 	public:
 		//构造函数
@@ -142,7 +142,7 @@ class InputBitBuffer : public BitBuffer{
 
 class OutputBitBuffer : public BitBuffer{
 	private:
-		std::ofstream& write;
+		std::ofstream* write;
 	public:
 		//构造函数
 		OutputBitBuffer(int fitLength=0);

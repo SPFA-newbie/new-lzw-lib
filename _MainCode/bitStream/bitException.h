@@ -25,3 +25,13 @@ class MismatchLengthException : public BitOperationException{
     public:
         char* what(){return "缓冲区与比特串长度不匹配";}
 };
+
+//文件流连接相关异常
+class MultipleConnectionException : public BitOperationException{
+    public:
+    char* what(){return "试图为缓冲区创建多个连接";}
+};
+class UnconnectException : public BitOperationException{
+    public:
+    char* what(){return "对未连接的缓冲区进行流操作";}
+};

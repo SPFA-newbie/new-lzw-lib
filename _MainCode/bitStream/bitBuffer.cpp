@@ -1,4 +1,5 @@
 #include<string>
+#include<fstream>
 #include"bitBuffer.h"
 #include"bitException.h"
 using namespace std;
@@ -166,3 +167,97 @@ BitBuffer::~BitBuffer(){
 //     cout<<buffer.getBuffer();
 //     return 0;
 // }
+
+
+/*--------------------------------------------
+作用：
+    InputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+返回值：
+    无
+--------------------------------------------*/
+InputBitBuffer::InputBitBuffer(int fitLength) : BitBuffer(fitLength){
+    read=nullptr;
+}
+
+/*--------------------------------------------
+作用：
+    InputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+    readDocument - 绑定了文件的文件输入流
+                   将会从这个文件中读取字节流
+返回值：
+    无
+--------------------------------------------*/
+InputBitBuffer::InputBitBuffer(int fitLength, ifstream& readDocument) : BitBuffer(fitLength){
+    read=(&readDocument);
+}
+
+/*--------------------------------------------
+作用：
+    将一个输入文件流与InputBitBuffer连接
+    一个缓冲区只能有一个连接
+    在断开原有连接前，重复连接会抛出异常
+参数：
+    readDocument - 绑定了文件的文件输入流
+                   将会从这个文件中读取字节流
+返回值：
+    无
+--------------------------------------------*/
+void InputBitBuffer::connectStream(ifstream& readDocument){
+    if(read!=nullptr)
+        throw MultipleConnectionException();
+    read=(&readDocument);
+}
+
+
+
+
+/*--------------------------------------------
+作用：
+    OutputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+返回值：
+    无
+--------------------------------------------*/
+OutputBitBuffer::OutputBitBuffer(int fitLength) : BitBuffer(fitLength){
+    write=nullptr;
+}
+
+/*--------------------------------------------
+作用：
+    OutputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+    writeDocument - 绑定了文件的文件输出流
+                    将会向这个文件中写入字节流
+返回值：
+    无
+--------------------------------------------*/
+OutputBitBuffer::OutputBitBuffer(int fitLength, ofstream& writeDocument) : BitBuffer(fitLength){
+    write=(&writeDocument);
+}
+
+/*--------------------------------------------
+作用：
+    将一个输出文件流与OutputBitBuffer连接
+    一个缓冲区只能有一个连接
+    在断开原有连接前，重复连接会抛出异常
+参数：
+    writeDocument - 绑定了文件的文件输出流
+                    将会向这个文件中写入字节流
+返回值：
+    无
+--------------------------------------------*/
+void OutputBitBuffer::connectStream(ofstream& writeDocument){
+    if(write!=nullptr)
+        throw MultipleConnectionException();
+    write=(&writeDocument);
+}
