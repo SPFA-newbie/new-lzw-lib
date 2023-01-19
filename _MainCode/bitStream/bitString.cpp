@@ -56,6 +56,66 @@ int BitString::getLength(){
 
 /*--------------------------------------------
 作用：
+    - 重载比较相关的运算符
+    - 比较为逐位比较
+    - 当一个BitString为另一个的前缀时，它更小
+参数：
+    bstr - 欲进行比较的另一个BitString
+返回值：
+    bool - 比较的结果
+--------------------------------------------*/
+bool BitString::operator>(BitString bstr){
+    int len = getLength();
+    if(len > bstr.getLength())
+        len=bstr.getLength();
+    for(int i=0;i<len;i++)
+        if(data[i]!=bstr.data[i]){
+            if(bstr.data[i]<0){
+                if(data[i]<bstr.data[i])return true;
+                    else return false;
+            }else{
+                if(data[i]<bstr.data[i])return false;
+                    else return true;
+            }
+        }
+    return getLength()>bstr.getLength();
+}
+bool BitString::operator<(BitString bstr){
+    return !((*this)>=bstr);
+}
+bool BitString::operator>=(BitString bstr){
+    int len = getLength();
+    if(len > bstr.getLength())
+        len=bstr.getLength();
+    for(int i=0;i<len;i++)
+        if(data[i]!=bstr.data[i]){
+            if(bstr.data[i]<0){
+                if(data[i]<bstr.data[i])return true;
+                    else return false;
+            }else{
+                if(data[i]<bstr.data[i])return false;
+                    else return true;
+            }
+        }
+    return getLength()>=bstr.getLength();
+}
+bool BitString::operator<=(BitString bstr){
+    return !((*this)>bstr);
+}
+bool BitString::operator==(BitString bstr){
+    if(getLength()!=bstr.getLength())return false;
+    int len=getLength();
+    for(int i=0;i<len;i++)
+        if(data[i]!=bstr.data[i])
+            return false;
+    return true;
+}
+bool BitString::operator!=(BitString bstr){
+    return !((*this)==bstr);
+}
+
+/*--------------------------------------------
+作用：
     - 调试时使用
     - 将比特串中的数据以01串的形式返回
 参数：

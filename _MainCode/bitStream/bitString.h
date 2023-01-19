@@ -65,6 +65,23 @@ class BitString{
 
 /*--------------------------------------------
 作用：
+    - 重载比较相关的运算符
+    - 比较为逐位比较
+    - 当一个BitString为另一个的前缀时，它更小
+参数：
+    bstr - 欲进行比较的另一个BitString
+返回值：
+    bool - 比较的结果
+--------------------------------------------*/
+        bool operator>(BitString bstr);
+        bool operator<(BitString bstr);
+        bool operator>=(BitString bstr);
+        bool operator<=(BitString bstr);
+        bool operator==(BitString bstr);
+        bool operator!=(BitString bstr);        
+
+/*--------------------------------------------
+作用：
     - 调试时使用
     - 将比特串中的数据以01串的形式返回
 参数：
