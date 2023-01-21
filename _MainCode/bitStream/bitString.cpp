@@ -5,6 +5,26 @@ using namespace std;
 
 /*--------------------------------------------
 作用：
+    根据ID构造一个特殊比特串
+参数：
+    id - 特殊比特串的ID
+返回值：
+    bstr - 构造得到的特殊比特串
+--------------------------------------------*/
+BitString makeSpecialBitString(int id){
+    if(id>=0)
+        throw IllegalSpecialBitStringId();
+    BitString bstr;
+    bstr.bitLength=id;
+    return bstr;
+}
+
+//在这里对特殊比特串进行注册
+const BitString bstr::refresh=makeSpecialBitString(-32);
+const BitString bstr::discard=makeSpecialBitString(-64);
+
+/*--------------------------------------------
+作用：
     指示一个字节的大小
 --------------------------------------------*/ 
 const int BitString::ByteLen=8;
@@ -65,6 +85,9 @@ int BitString::getLength(){
     bool - 比较的结果
 --------------------------------------------*/
 bool BitString::operator>(BitString bstr){
+    if(getLength()<0 || bstr.getLength()<0)
+        throw ComparedWithSpecialBitString();
+    
     int len = getLength();
     if(len > bstr.getLength())
         len=bstr.getLength();
@@ -84,6 +107,9 @@ bool BitString::operator<(BitString bstr){
     return !((*this)>=bstr);
 }
 bool BitString::operator>=(BitString bstr){
+    if(getLength()<0 || bstr.getLength()<0)
+        throw ComparedWithSpecialBitString();
+    
     int len = getLength();
     if(len > bstr.getLength())
         len=bstr.getLength();
@@ -103,6 +129,9 @@ bool BitString::operator<=(BitString bstr){
     return !((*this)>bstr);
 }
 bool BitString::operator==(BitString bstr){
+    if(getLength()<0 || bstr.getLength()<0)
+        throw ComparedWithSpecialBitString();    
+    
     if(getLength()!=bstr.getLength())return false;
     int len=getLength();
     for(int i=0;i<len;i++)

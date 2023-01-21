@@ -26,6 +26,16 @@ class MismatchLengthException : public BitOperationException{
         char* what(){return "缓冲区与比特串长度不匹配";}
 };
 
+//特殊比特串相关异常
+class ComparedWithSpecialBitString : public BitOperationException{
+    public:
+        char* what(){return "不能对特殊比特串进行比较";}
+};
+class IllegalSpecialBitStringId : public BitOperationException{
+    public:
+        char* what(){return "非法的特殊比特串ID";}
+};
+
 //文件流连接相关异常
 class MultipleConnectionException : public BitOperationException{
     public:
