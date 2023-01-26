@@ -5,6 +5,7 @@
 #include<istream>
 
 class BitString;
+class BitBufferControllerFlag;
 
 //使用BitBuffer时不要直接使用这个类，而是使用它的两个子类（Input/OutputBitBuffer）
 class BitBuffer{
@@ -153,6 +154,7 @@ class OutputBitBuffer : public BitBuffer{
 		void disconnectStream(bool closeStream=true);
 		//Buffer操作
 		OutputBitBuffer& operator<<(BitString bits);
+		OutputBitBuffer& operator<<(BitBufferControllerFlag controller);
 		bool close(bool closeStream=true);
 
 		//析构函数

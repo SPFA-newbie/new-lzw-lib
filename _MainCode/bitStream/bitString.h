@@ -4,18 +4,6 @@
 
 #include"bitBuffer.h"
 
-//这个名称空间中存放一些特殊的BitString对象
-namespace bstr{
-	//这个BitString用来刷新缓冲区
-	//缓冲区接受到这个对象时，将强制进行刷新
-	//缓冲区会将已有的数据输出到文件中
-	extern const BitString refresh;
-	//这个BitString用来刷新缓冲区
-	//缓冲区接受到这个对象时，将强制进行刷新
-	//缓冲区会将已有的数据直接丢弃
-	extern const BitString discard; 
-};
-
 //这个类只能依靠BitBuffer进行赋值取值
 class BitString{
 	private:
@@ -43,10 +31,6 @@ class BitString{
 
 		friend InputBitBuffer& InputBitBuffer::operator>>(BitString bits);
 		friend OutputBitBuffer& OutputBitBuffer::operator<<(BitString bits);
-
-        //这个友元函数用来构造特殊的比特串，不应当随意使用这个函数
-        //所有的ID都应该为负数，此时，bitLength即为比特串的id
-        friend BitString makeSpecialBitString(int id);
 	
 	public:
 /*--------------------------------------------
