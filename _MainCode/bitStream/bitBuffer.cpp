@@ -214,6 +214,36 @@ void InputBitBuffer::connectStream(ifstream& readDocument){
     read=(&readDocument);
 }
 
+/*--------------------------------------------
+作用：
+    断开InputBitBuffer与输入文件流的连接
+    断开不存在的连接会抛出异常
+参数：
+    closeStream - 是否在断开连接的同时关闭文件流
+                  默认值为true
+返回值：
+    无
+--------------------------------------------*/
+void InputBitBuffer::disconnectStream(bool closeStream){
+    if(read==nullptr)
+        throw UnconnectException();
+    if(closeStream)
+        read->close();
+    read=nullptr;
+}
+
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否连接了文件流
+参数：
+    无
+返回值：
+    result - 缓冲区是否连接了文件流
+             连接时返回true
+--------------------------------------------*/
+bool InputBitBuffer::isStreamConnected(){
+    return read!=nullptr;
+}
 
 
 
@@ -260,4 +290,36 @@ void OutputBitBuffer::connectStream(ofstream& writeDocument){
     if(write!=nullptr)
         throw MultipleConnectionException();
     write=(&writeDocument);
+}
+
+/*--------------------------------------------
+作用：
+    断开OutputBitBuffer与输出文件流的连接
+    断开时并不会输出缓冲区中已有的内容
+    断开不存在的连接会抛出异常
+参数：
+    closeStream - 是否在断开连接的同时关闭文件流
+                  默认值为true
+返回值：
+    无
+--------------------------------------------*/
+void OutputBitBuffer::disconnectStream(bool closeStream){
+    if(write==nullptr)
+        throw UnconnectException();
+    if(closeStream)
+        write->close();
+    write=nullptr;
+}
+
+/*--------------------------------------------
+作用：
+    测试OutputBitBuffer是否连接了文件流
+参数：
+    无
+返回值：
+    result - 缓冲区是否连接了文件流
+             连接时返回true
+--------------------------------------------*/
+bool OutputBitBuffer::isStreamConnected(){
+    return write!=nullptr;
 }

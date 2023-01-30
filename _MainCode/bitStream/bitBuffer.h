@@ -90,6 +90,17 @@ class BitBuffer{
 
 /*--------------------------------------------
 作用：
+    测试BitBuffer是否连接了文件流
+参数：
+    无
+返回值：
+    result - 缓冲区是否连接了文件流
+             连接时返回true
+--------------------------------------------*/
+		virtual bool isStreamConnected()=0;
+
+/*--------------------------------------------
+作用：
     - 调试时使用
     - 将缓冲区中的数据以01串的形式返回
 参数：
@@ -126,13 +137,54 @@ class InputBitBuffer : public BitBuffer{
 		std::ifstream* read;
 
 	public:
-		//构造函数
+/*--------------------------------------------
+作用：
+    InputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+返回值：
+    无
+--------------------------------------------*/
 		InputBitBuffer(int fitLength=0);
+/*--------------------------------------------
+作用：
+    InputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+    readDocument - 绑定了文件的文件输入流
+                   将会从这个文件中读取字节流
+返回值：
+    无
+--------------------------------------------*/
 		InputBitBuffer(int fitLength, std::ifstream& readDocument);
 		
-		//Stream操作
+/*--------------------------------------------
+作用：
+    将一个输入文件流与InputBitBuffer连接
+    一个缓冲区只能有一个连接
+    在断开原有连接前，重复连接会抛出异常
+参数：
+    readDocument - 绑定了文件的文件输入流
+                   将会从这个文件中读取字节流
+返回值：
+    无
+--------------------------------------------*/
 		void connectStream(std::ifstream& readDocument);
+/*--------------------------------------------
+作用：
+    断开InputBitBuffer与输入文件流的连接
+    断开不存在的连接会抛出异常
+参数：
+    closeStream - 是否在断开连接的同时关闭文件流
+                  默认值为true
+返回值：
+    无
+--------------------------------------------*/
 		void disconnectStream(bool closeStream=true);
+
+		bool isStreamConnected();
 		//Buffer操作
 		InputBitBuffer& operator>>(BitString bits);
 		bool close(bool closeStream=true);
@@ -145,13 +197,63 @@ class OutputBitBuffer : public BitBuffer{
 	private:
 		std::ofstream* write;
 	public:
-		//构造函数
+/*--------------------------------------------
+作用：
+    OutputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+返回值：
+    无
+--------------------------------------------*/
 		OutputBitBuffer(int fitLength=0);
+/*--------------------------------------------
+作用：
+    OutputBitBuffer的构造函数
+参数：
+    fitLength - 匹配的比特串的长度
+                为0时表示未初始化
+    writeDocument - 绑定了文件的文件输出流
+                    将会向这个文件中写入字节流
+返回值：
+    无
+--------------------------------------------*/
 		OutputBitBuffer(int fitLength, std::ofstream& writeDocument);
 
-		//Stream操作
+/*--------------------------------------------
+作用：
+    将一个输出文件流与OutputBitBuffer连接
+    一个缓冲区只能有一个连接
+    在断开原有连接前，重复连接会抛出异常
+参数：
+    writeDocument - 绑定了文件的文件输出流
+                    将会向这个文件中写入字节流
+返回值：
+    无
+--------------------------------------------*/
 		void connectStream(std::ofstream& writeDocument);
+/*--------------------------------------------
+作用：
+    断开OutputBitBuffer与输出文件流的连接
+    断开时并不会输出缓冲区中已有的内容
+    断开不存在的连接会抛出异常
+参数：
+    closeStream - 是否在断开连接的同时关闭文件流
+                  默认值为true
+返回值：
+    无
+--------------------------------------------*/
 		void disconnectStream(bool closeStream=true);
+/*--------------------------------------------
+作用：
+    测试OutputBitBuffer是否连接了文件流
+参数：
+    无
+返回值：
+    result - 缓冲区是否连接了文件流
+             连接时返回true
+--------------------------------------------*/
+		bool isStreamConnected();
 		//Buffer操作
 		OutputBitBuffer& operator<<(BitString bits);
 		OutputBitBuffer& operator<<(BitBufferControllerFlag controller);
