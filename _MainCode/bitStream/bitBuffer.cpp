@@ -155,9 +155,8 @@ void BitBuffer::setByteData(char data, bool autoNext){
         throw BufferOverflowed();
 
     if(position%ByteLen!=0){
-        char now=this->data[position/ByteLen];
         char mask=makeMask(0, position%ByteLen);
-        now&=mask;
+        char now=(this->data[position/ByteLen])&mask;
         char leftData=data>>(position%ByteLen);
         char rightData=data<<(ByteLen-position%ByteLen);
         leftData&=(~mask);
@@ -180,7 +179,22 @@ void BitBuffer::setByteData(char data, bool autoNext){
     data - 读取到的一个字节的数据
 --------------------------------------------*/        
 char BitBuffer::getByteData(bool autoNext=true){
+    if(position>bufferLength)
+        throw BufferOverflowed();
+    if(position+ByteLen>bufferLength)
+        throw BufferOverflowed();
+    
+    char data;
+    if(position%ByteLen!=0){
+        char left=(this->data[position/ByteLen])<<(position%ByteLen);
+        char right=this->data[position/ByteLen+1]>>(ByteLen-position%ByteLen);
+        char mask=makeMask(0, ByteLen-position%ByteLen);
+        data=(left&mask)|(right&(~mask));
+    }else data=this->data[position/ByteLen];
 
+    if(autoNext)
+        offsetPosition(ByteLen);
+    return data;
 }
 
 /*--------------------------------------------
