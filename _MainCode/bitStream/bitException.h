@@ -29,9 +29,15 @@ class MismatchLengthException : public BitOperationException{
 //文件流连接相关异常
 class MultipleConnectionException : public BitOperationException{
     public:
-    char* what(){return "试图为缓冲区创建多个连接";}
+        char* what(){return "试图为缓冲区创建多个连接";}
 };
 class UnconnectException : public BitOperationException{
     public:
-    char* what(){return "对未连接的缓冲区进行流操作";}
+        char* what(){return "对未连接的缓冲区进行流操作";}
+};
+
+//输入输出相关异常
+class BufferOverflowed : public BitOperationException{
+    public:
+        char* what(){return "游标指向缓冲区之外";}
 };

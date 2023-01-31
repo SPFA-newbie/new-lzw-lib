@@ -39,6 +39,60 @@ void BitBuffer::setBufferLength(){
 
 /*--------------------------------------------
 作用：
+    设置游标位置
+参数：
+    pos - 目标位置，以位计，从0开始编号
+返回值：
+    无
+--------------------------------------------*/        
+void BitBuffer::setPosition(int pos){
+    if(pos>bufferLength)
+        throw BufferOverflowed();
+    position=pos;
+}
+
+/*--------------------------------------------
+作用：
+    获取游标位置
+参数：
+    position - 游标当前位置，以位计，从0开始编号
+返回值：
+    无
+--------------------------------------------*/
+int BitBuffer::getPosition(){
+    return position;
+}
+
+/*--------------------------------------------
+作用：
+    将游标移动到下一个位置
+参数：
+    无
+返回值：
+    hasNext - 是否还能继续移动
+              失败表示游标已经移动到尾部
+--------------------------------------------*/
+bool BitBuffer::nextPosition(){
+    if(position==bufferLength)return false;
+    position+=fitLength;
+    if(position==bufferLength)return false;
+    return true;
+}
+
+/*--------------------------------------------
+作用：
+    将游标移动到缓冲区头部
+参数：
+    无
+返回值：
+    无
+--------------------------------------------*/
+void BitBuffer::resetPosition(){
+    position=0;
+}
+
+/*--------------------------------------------
+作用：
     BitBuffer的构造函数
 参数：
     fitLength - 匹配的比特串的长度
