@@ -65,6 +65,23 @@ int BitBuffer::getPosition(){
 
 /*--------------------------------------------
 作用：
+    将游标偏移一段距离
+参数：
+    offset - 进行偏移的距离
+             为负数时代表向左偏移
+返回值：
+    无
+--------------------------------------------*/
+void BitBuffer::offsetPosition(int offset){
+    if(position+offset>bufferLength)
+        throw BufferOverflowed();
+    if(position+offset<0)
+        throw BufferOverflowed();
+    position+=offset;
+}
+
+/*--------------------------------------------
+作用：
     将游标移动到下一个位置
 参数：
     无
@@ -89,6 +106,131 @@ bool BitBuffer::nextPosition(){
 --------------------------------------------*/
 void BitBuffer::resetPosition(){
     position=0;
+}
+
+/*--------------------------------------------
+作用：
+    生成一个1字节长度的掩码
+    用于获取某个字符中连续的几位
+参数：
+    begin - 欲提取部分的开头位序号
+    end - 欲提取部分的结尾位序号
+    序号从0开始计算，第0位为最高位
+    规定的区间为前闭后开区间
+    当begin≥end时，掩码将会被构建成为0
+返回值：
+    mask - 构造得到的掩码
+--------------------------------------------*/
+char BitBuffer::makeMask(int begin, int end){
+    if(begin>=end)return (char)0;
+    char mask=0;
+    bool bit0Mask=(begin==0);
+
+    if(bit0Mask)begin++;
+    for(int i=begin;i<end;i++)
+        mask+=(1<<(ByteLen-i-1));
+
+    if(bit0Mask){
+        char tool=0;
+        for(int i=1;i<ByteLen;i++)
+            tool+=(1<<(i-1));
+        mask|=((-1)^tool);
+    }
+    return mask;
+}
+
+/*--------------------------------------------
+作用：
+    向缓冲区内写入一个字节的数据
+参数：
+    data - 将要写入的数据
+    autoNext - 写入后是否移动游标，默认值为true
+返回值：
+    无
+--------------------------------------------*/
+void BitBuffer::setByteData(char data, bool autoNext){
+    if(position>bufferLength)
+        throw BufferOverflowed();
+    if(position+ByteLen>bufferLength)
+        throw BufferOverflowed();
+
+    if(position%ByteLen!=0){
+        char now=this->data[position/ByteLen];
+        char mask=makeMask(0, position%ByteLen);
+        now&=mask;
+        char leftData=data>>(position%ByteLen);
+        char rightData=data<<(ByteLen-position%ByteLen);
+        leftData&=(~mask);
+        rightData&=mask;
+        
+        this->data[position/ByteLen]=now|leftData;
+        this->data[position/ByteLen+1]=rightData;
+    }else this->data[position/ByteLen]=data;
+
+    if(autoNext)
+        offsetPosition(ByteLen);
+}
+
+/*--------------------------------------------
+作用：
+    从缓冲区中读取一个字节的数据
+参数：
+    autoNext - 读取后是否移动游标，默认值为true
+返回值：
+    data - 读取到的一个字节的数据
+--------------------------------------------*/        
+char BitBuffer::getByteData(bool autoNext=true){
+
+}
+
+/*--------------------------------------------
+作用：
+    向缓冲区内写入一个比特的数据
+参数：
+    data - 将要写入的数据
+    autoNext - 写入后是否移动游标，默认值为true
+返回值：
+    无
+--------------------------------------------*/
+void BitBuffer::setBitData(char data, bool autoNext){
+
+}
+
+/*--------------------------------------------
+作用：
+    从缓冲区中读取一个比特的数据
+参数：
+    autoNext - 读取后是否移动游标，默认值为true
+返回值：
+    data - 读取到的一个字节的数据
+--------------------------------------------*/        
+char BitBuffer::getBitData(bool autoNext){
+
+}
+
+/*--------------------------------------------
+作用：
+    向缓冲区内写入一个适合长度的数据
+参数：
+    data - 指向将要写入的数据的指针（char*）
+    autoNext - 写入后是否移动游标，默认值为true
+返回值：
+    无
+--------------------------------------------*/
+void BitBuffer::setFitData(char* data, bool autoNext){
+
+}
+
+/*--------------------------------------------
+作用：
+    从缓冲区中读取一个适合长度的数据
+参数：
+    autoNext - 读取后是否移动游标，默认值为true
+返回值：
+    data - 一个指向读取到的数据的指针（char*）
+--------------------------------------------*/
+char* BitBuffer::getFitData(bool autoNext){
+
 }
 
 /*--------------------------------------------
