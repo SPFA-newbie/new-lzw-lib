@@ -202,12 +202,18 @@ char BitBuffer::getByteData(bool autoNext=true){
     向缓冲区内写入一个比特的数据
 参数：
     data - 将要写入的数据
+           任何不为0的值均认为是1
     autoNext - 写入后是否移动游标，默认值为true
 返回值：
     无
 --------------------------------------------*/
 void BitBuffer::setBitData(char data, bool autoNext){
-
+    char mask=makeMask(0, position%ByteLen)|makeMask(position%ByteLen+1, ByteLen);
+    this->data[position/ByteLen]&=mask;
+    if(data!=0)
+        this->data[position/ByteLen]|=makeMask(position%ByteLen, position%ByteLen+1);
+    if(autoNext)
+        offsetPosition(1);
 }
 
 /*--------------------------------------------
@@ -217,9 +223,16 @@ void BitBuffer::setBitData(char data, bool autoNext){
     autoNext - 读取后是否移动游标，默认值为true
 返回值：
     data - 读取到的一个字节的数据
---------------------------------------------*/        
+           为0时返回0，为1时返回-1
+--------------------------------------------*/          
 char BitBuffer::getBitData(bool autoNext){
-
+    char data;
+    if((this->data[position/ByteLen])&makeMask(position%ByteLen,position%ByteLen+1)!=0){
+        data=(char)-1;
+    }else data=(char)0;
+    if(autoNext)
+        offsetPosition(1);
+    return data;
 }
 
 /*--------------------------------------------
