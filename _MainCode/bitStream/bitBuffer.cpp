@@ -245,7 +245,32 @@ char BitBuffer::getBitData(bool autoNext){
     无
 --------------------------------------------*/
 void BitBuffer::setFitData(char* data, bool autoNext){
+    int fullByte=fitLength/ByteLen;
+    int fragmentBit=fitLength%ByteLen+1;
+    int nowPosition=position;
+    for(int i=0;i<fullByte;i++)
+        setByteData(data[i]);
+    
+    //低效部分，需要修改
+    int& last=fullByte;
+    for(int i=0;i<fragmentBit;i++){
+        setBitData(data[last]&makeMask(i, i+1));
+    }
+    // int& last=fullByte;
+    // if((position%ByteLen)+fragmentBit>ByteLen){
+    //     char leftMask=makeMask(position%ByteLen, ByteLen);
+    //     char leftData=(data[last]>>(position%ByteLen))&leftMask;
+    //     this->data[position/ByteLen]&=(~leftMask);
+    //     this->data[position/ByteLen]|=leftData;
 
+    //     char rightMask=makeMask(0, (position%ByteLen)+fragmentBit-ByteLen+1);
+    //     char rightData=(data[last]<<)
+    // }else{
+
+    // }
+
+    if(!autoNext)
+        position=nowPosition;
 }
 
 /*--------------------------------------------
@@ -257,7 +282,26 @@ void BitBuffer::setFitData(char* data, bool autoNext){
     data - 一个指向读取到的数据的指针（char*）
 --------------------------------------------*/
 char* BitBuffer::getFitData(bool autoNext){
+    int byteNum=fitLength/ByteLen;
+    int fullByte=byteNum;
+    int fragmentBit=fitLength%ByteLen;
+    if(fragmentBit!=0)byteNum++;
+    int nowPosition=position;
+    
+    char* data=new char[byteNum];
+    for(int i=0;i<fullByte;i++)
+        data[i]=getByteData();
+    
+    //低效部分，需要修改
+    int& last=fullByte;
+    data[last]=0;
+    for(int i=0;i<fragmentBit;i++){
+        data[last]|=(getByteData()&makeMask(i, i+1));
+    }
 
+    if(!autoNext)
+        position=nowPosition;
+    return data;
 }
 
 /*--------------------------------------------
