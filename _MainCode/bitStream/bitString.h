@@ -4,7 +4,9 @@
 
 #include"bitBuffer.h"
 
-//这个类只能依靠BitBuffer进行赋值取值
+#define _Byte unsigned char
+
+/*这个类只能依靠BitBuffer进行赋值取值*/
 class BitString{
 	private:
 /*--------------------------------------------
@@ -26,7 +28,7 @@ class BitString{
 		}
 	
 	private:
-		char* data;		
+		_Byte* data;		
 		int  bitLength;
 
 		friend InputBitBuffer& InputBitBuffer::operator>>(BitString bits);
@@ -66,7 +68,6 @@ class BitString{
 /*--------------------------------------------
 作用：
     - 重载比较相关的运算符
-    - 比较为逐位比较
     - 当一个BitString为另一个的前缀时，它更小
 参数：
     bstr - 欲进行比较的另一个BitString

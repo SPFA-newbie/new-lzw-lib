@@ -22,7 +22,7 @@ BitString::BitString(int bitLength){
     if(bitLength<0)
         throw new IllegalLengthException();
     if(bitLength!=0)
-        this->data=new char[getByteLen(bitLength)];
+        this->data=new _Byte[getByteLen(bitLength)];
 }
 
 /*--------------------------------------------
@@ -39,7 +39,7 @@ void BitString::setLength(int bitLength){
     if(bitLength<=0)
         throw new IllegalLengthException();
     this->bitLength=bitLength;
-    this->data=new char[getByteLen(bitLength)];
+    this->data=new _Byte[getByteLen(bitLength)];
 }
 
 /*--------------------------------------------
@@ -57,7 +57,6 @@ int BitString::getLength(){
 /*--------------------------------------------
 作用：
     - 重载比较相关的运算符
-    - 比较为逐位比较
     - 当一个BitString为另一个的前缀时，它更小
 参数：
     bstr - 欲进行比较的另一个BitString
@@ -68,36 +67,16 @@ bool BitString::operator>(BitString bstr){
     int len = getLength();
     if(len > bstr.getLength())
         len=bstr.getLength();
-    for(int i=0;i<len;i++)
-        if(data[i]!=bstr.data[i]){
-            if(bstr.data[i]<0){
-                if(data[i]<bstr.data[i])return true;
-                    else return false;
-            }else{
-                if(data[i]<bstr.data[i])return false;
-                    else return true;
-            }
-        }
+    for(int i=0;i<getByteLen(len);i++)
+        if(data[i]!=bstr.data[i])
+            return data[i]>bstr.data[i];
     return getLength()>bstr.getLength();
 }
 bool BitString::operator<(BitString bstr){
     return !((*this)>=bstr);
 }
 bool BitString::operator>=(BitString bstr){    
-    int len = getLength();
-    if(len > bstr.getLength())
-        len=bstr.getLength();
-    for(int i=0;i<len;i++)
-        if(data[i]!=bstr.data[i]){
-            if(bstr.data[i]<0){
-                if(data[i]<bstr.data[i])return true;
-                    else return false;
-            }else{
-                if(data[i]<bstr.data[i])return false;
-                    else return true;
-            }
-        }
-    return getLength()>=bstr.getLength();
+    return (((*this)>bstr) || ((*this)==bstr));
 }
 bool BitString::operator<=(BitString bstr){
     return !((*this)>bstr);
@@ -105,7 +84,7 @@ bool BitString::operator<=(BitString bstr){
 bool BitString::operator==(BitString bstr){
     if(getLength()!=bstr.getLength())return false;
     int len=getLength();
-    for(int i=0;i<len;i++)
+    for(int i=0;i<getByteLen(len);i++)
         if(data[i]!=bstr.data[i])
             return false;
     return true;
@@ -124,21 +103,18 @@ bool BitString::operator!=(BitString bstr){
     bits - 一个01串，表示比特串中的数据
 --------------------------------------------*/
 string BitString::getBitString(){
-    char mask=1;
-    string bits="";
-    int position=0;
-    for(int i=0;i<bitLength;i++){
-        if(i%ByteLen==0){
-            mask=(1<<(ByteLen-1));
-            if(i!=0) position++;
-        }else if(i%ByteLen==1){
-        	mask=(1<<(ByteLen-2));
-		}
-        if((data[position]&mask)!=0)bits.append("1");
-        	else bits.append("0");
-        mask=mask>>1;
+    _Byte mask=1<<(ByteLen-1);
+    int position=-1;
+    string s="";
+    for(int i=0;i<bitLength;i++) {
+        if(i%ByteLen==0)position++;
+		if((mask&data[position])!=0)s=s+"1";
+            else s=s+"0";
+        mask>>=1;
+        if(mask==0)
+            mask=1<<(ByteLen-1);
     }
-    return bits;
+    return s;
 }
 
 /*--------------------------------------------
@@ -153,16 +129,19 @@ string BitString::getBitString(){
 bool BitString::setBitString(string bits){
     if(bits.length()!=bitLength)
         return false;
-    char now=0;
+    _Byte now=0;
     int position=0;
     for(int i=0;i<bits.length();i++){
-        if(bits[i]=='1')now+=(1<<(ByteLen-i%ByteLen-1));
-        if(i%ByteLen==ByteLen-1){
-            data[position]=now;
+        now<<=1;
+        if(bits[i]=='1') now++;
+        position++;
+        if(position%ByteLen==0) {
+            data[position/ByteLen-1]=now;
             now=0;
-            position++;
         }
     }
+    if(position%ByteLen!=0)
+        data[position/ByteLen]=now<<(ByteLen-position%ByteLen);
     return true;
 }
 
@@ -184,7 +163,14 @@ BitString::~BitString(){
 // int main(){
 //     BitString bitstr;
 //     bitstr.setLength(26);
-//     cout<<bitstr.setBitString("10101010010101011111111100")<<endl;
-//     cout<<bitstr.getBitString();
+
+//     cout<<bitstr.setBitString("10101010010101011111111110")<<endl;
+//     cout<<bitstr.getBitString()<<endl;
+
+//     BitString bitstr2;
+//     bitstr2.setLength(28);
+//     bitstr2.setBitString("1010101001010101111111111011");
+//     cout<<(bitstr>=bitstr2);//true 
+//     cout<<(bitstr<bitstr2);//false
 //     return 0;
 // }
