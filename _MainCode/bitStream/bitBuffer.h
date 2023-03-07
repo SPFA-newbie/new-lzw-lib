@@ -4,6 +4,8 @@
 #include<ostream>
 #include<istream>
 
+#define _Byte unsigned char
+
 class BitString;
 class BitBufferControllerFlag;
 
@@ -43,7 +45,7 @@ class BitBuffer{
 作用：
     存储数据的缓冲区主要部分
 --------------------------------------------*/		
-        char* data;
+        _Byte* data;
 /*--------------------------------------------
 作用：
     记录与缓冲区长度匹配的BitString的长度
@@ -127,7 +129,7 @@ class BitBuffer{
 返回值：
     mask - 构造得到的掩码
 --------------------------------------------*/
-        char makeMask(int begin, int end);
+        _Byte makeMask(int begin, int end);
 
 /*--------------------------------------------
 作用：
@@ -138,7 +140,7 @@ class BitBuffer{
 返回值：
     无
 --------------------------------------------*/
-        void setByteData(char data, bool autoNext=true);
+        void setByteData(_Byte data, bool autoNext=true);
 /*--------------------------------------------
 作用：
     从缓冲区中读取一个字节的数据
@@ -147,7 +149,7 @@ class BitBuffer{
 返回值：
     data - 读取到的一个字节的数据
 --------------------------------------------*/        
-        char getByteData(bool autoNext=true);
+        _Byte getByteData(bool autoNext=true);
 /*--------------------------------------------
 作用：
     向缓冲区内写入一个比特的数据
@@ -158,7 +160,7 @@ class BitBuffer{
 返回值：
     无
 --------------------------------------------*/
-        void setBitData(char data, bool autoNext=true);
+        void setBitData(_Byte data, bool autoNext=true);
 /*--------------------------------------------
 作用：
     从缓冲区中读取一个比特的数据
@@ -168,26 +170,26 @@ class BitBuffer{
     data - 读取到的一个字节的数据
            为0时返回0，为1时返回-1
 --------------------------------------------*/        
-        char getBitData(bool autoNext=true);
+        _Byte getBitData(bool autoNext=true);
 /*--------------------------------------------
 作用：
     向缓冲区内写入一个适合长度的数据
 参数：
-    data - 指向将要写入的数据的指针（char*）
+    data - 指向将要写入的数据的指针（_Byte*）
     autoNext - 写入后是否移动游标，默认值为true
 返回值：
     无
 --------------------------------------------*/
-        void setFitData(char* data, bool autoNext=true);
+        void setFitData(_Byte* data, bool autoNext=true);
 /*--------------------------------------------
 作用：
     从缓冲区中读取一个适合长度的数据
 参数：
     autoNext - 读取后是否移动游标，默认值为true
 返回值：
-    data - 一个指向读取到的数据的指针（char*）
+    data - 一个指向读取到的数据的指针（_Byte*）
 --------------------------------------------*/
-        char* getFitData(bool autoNext=true);
+        _Byte* getFitData(bool autoNext=true);
 	
 	public:
 /*--------------------------------------------

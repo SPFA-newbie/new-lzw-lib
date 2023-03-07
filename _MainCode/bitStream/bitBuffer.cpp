@@ -34,7 +34,7 @@ int BitBuffer::gcd(int n1, int n2){
 --------------------------------------------*/ 
 void BitBuffer::setBufferLength(){
     bufferLength=fitLength*ByteLen/gcd(fitLength, ByteLen);
-    data=new char[bufferLength/ByteLen];
+    data=new _Byte[bufferLength/ByteLen];
 }
 
 /*--------------------------------------------
@@ -121,20 +121,11 @@ void BitBuffer::resetPosition(){
 返回值：
     mask - 构造得到的掩码
 --------------------------------------------*/
-char BitBuffer::makeMask(int begin, int end){
-    if(begin>=end)return (char)0;
-    char mask=0;
-    bool bit0Mask=(begin==0);
-
-    if(bit0Mask)begin++;
-    for(int i=begin;i<end;i++)
-        mask+=(1<<(ByteLen-i-1));
-
-    if(bit0Mask){
-        char tool=0;
-        for(int i=1;i<ByteLen;i++)
-            tool+=(1<<(i-1));
-        mask|=((-1)^tool);
+_Byte BitBuffer::makeMask(int begin, int end){
+    _Byte mask=0;
+    for(int i=0;i<ByteLen;i++) {
+        if(i>=begin && i<end)mask++;
+        mask<<=1;
     }
     return mask;
 }
@@ -148,17 +139,17 @@ char BitBuffer::makeMask(int begin, int end){
 返回值：
     无
 --------------------------------------------*/
-void BitBuffer::setByteData(char data, bool autoNext){
+void BitBuffer::setByteData(_Byte data, bool autoNext){
     if(position>bufferLength)
         throw BufferOverflowed();
     if(position+ByteLen>bufferLength)
         throw BufferOverflowed();
 
     if(position%ByteLen!=0){
-        char mask=makeMask(0, position%ByteLen);
-        char now=(this->data[position/ByteLen])&mask;
-        char leftData=data>>(position%ByteLen);
-        char rightData=data<<(ByteLen-position%ByteLen);
+        _Byte mask=makeMask(0, position%ByteLen);
+        _Byte now=(this->data[position/ByteLen])&mask;
+        _Byte leftData=data>>(position%ByteLen);
+        _Byte rightData=data<<(ByteLen-position%ByteLen);
         leftData&=(~mask);
         rightData&=mask;
         
@@ -178,17 +169,17 @@ void BitBuffer::setByteData(char data, bool autoNext){
 返回值：
     data - 读取到的一个字节的数据
 --------------------------------------------*/        
-char BitBuffer::getByteData(bool autoNext=true){
+_Byte BitBuffer::getByteData(bool autoNext){
     if(position>bufferLength)
         throw BufferOverflowed();
     if(position+ByteLen>bufferLength)
         throw BufferOverflowed();
     
-    char data;
+    _Byte data;
     if(position%ByteLen!=0){
-        char left=(this->data[position/ByteLen])<<(position%ByteLen);
-        char right=this->data[position/ByteLen+1]>>(ByteLen-position%ByteLen);
-        char mask=makeMask(0, ByteLen-position%ByteLen);
+        _Byte left=(this->data[position/ByteLen])<<(position%ByteLen);
+        _Byte right=this->data[position/ByteLen+1]>>(ByteLen-position%ByteLen);
+        _Byte mask=makeMask(0, ByteLen-position%ByteLen);
         data=(left&mask)|(right&(~mask));
     }else data=this->data[position/ByteLen];
 
@@ -207,8 +198,8 @@ char BitBuffer::getByteData(bool autoNext=true){
 返回值：
     无
 --------------------------------------------*/
-void BitBuffer::setBitData(char data, bool autoNext){
-    char mask=makeMask(0, position%ByteLen)|makeMask(position%ByteLen+1, ByteLen);
+void BitBuffer::setBitData(_Byte data, bool autoNext){
+    _Byte mask=makeMask(0, position%ByteLen)|makeMask(position%ByteLen+1, ByteLen);
     this->data[position/ByteLen]&=mask;
     if(data!=0)
         this->data[position/ByteLen]|=makeMask(position%ByteLen, position%ByteLen+1);
@@ -225,11 +216,11 @@ void BitBuffer::setBitData(char data, bool autoNext){
     data - 读取到的一个字节的数据
            为0时返回0，为1时返回-1
 --------------------------------------------*/          
-char BitBuffer::getBitData(bool autoNext){
-    char data;
+_Byte BitBuffer::getBitData(bool autoNext){
+    _Byte data;
     if((this->data[position/ByteLen])&makeMask(position%ByteLen,position%ByteLen+1)!=0){
-        data=(char)-1;
-    }else data=(char)0;
+        data=(_Byte)-1;
+    }else data=(_Byte)0;
     if(autoNext)
         offsetPosition(1);
     return data;
@@ -239,12 +230,12 @@ char BitBuffer::getBitData(bool autoNext){
 作用：
     向缓冲区内写入一个适合长度的数据
 参数：
-    data - 指向将要写入的数据的指针（char*）
+    data - 指向将要写入的数据的指针（_Byte*）
     autoNext - 写入后是否移动游标，默认值为true
 返回值：
     无
 --------------------------------------------*/
-void BitBuffer::setFitData(char* data, bool autoNext){
+void BitBuffer::setFitData(_Byte* data, bool autoNext){
     int fullByte=fitLength/ByteLen;
     int fragmentBit=fitLength%ByteLen+1;
     int nowPosition=position;
@@ -256,18 +247,6 @@ void BitBuffer::setFitData(char* data, bool autoNext){
     for(int i=0;i<fragmentBit;i++){
         setBitData(data[last]&makeMask(i, i+1));
     }
-    // int& last=fullByte;
-    // if((position%ByteLen)+fragmentBit>ByteLen){
-    //     char leftMask=makeMask(position%ByteLen, ByteLen);
-    //     char leftData=(data[last]>>(position%ByteLen))&leftMask;
-    //     this->data[position/ByteLen]&=(~leftMask);
-    //     this->data[position/ByteLen]|=leftData;
-
-    //     char rightMask=makeMask(0, (position%ByteLen)+fragmentBit-ByteLen+1);
-    //     char rightData=(data[last]<<)
-    // }else{
-
-    // }
 
     if(!autoNext)
         position=nowPosition;
@@ -279,16 +258,16 @@ void BitBuffer::setFitData(char* data, bool autoNext){
 参数：
     autoNext - 读取后是否移动游标，默认值为true
 返回值：
-    data - 一个指向读取到的数据的指针（char*）
+    data - 一个指向读取到的数据的指针（_Byte*）
 --------------------------------------------*/
-char* BitBuffer::getFitData(bool autoNext){
+_Byte* BitBuffer::getFitData(bool autoNext){
     int byteNum=fitLength/ByteLen;
     int fullByte=byteNum;
     int fragmentBit=fitLength%ByteLen;
     if(fragmentBit!=0)byteNum++;
     int nowPosition=position;
     
-    char* data=new char[byteNum];
+    _Byte* data=new _Byte[byteNum];
     for(int i=0;i<fullByte;i++)
         data[i]=getByteData();
     
@@ -370,7 +349,7 @@ void BitBuffer::setFitLength(int fitLength){
     bits - 一个01串，表示缓冲区中的数据
 --------------------------------------------*/
 string BitBuffer::getBuffer(){
-    char mask=1;
+    _Byte mask=1;
     string bits="";
     int position=0;
     for(int i=0;i<bufferLength;i++){
@@ -399,7 +378,7 @@ string BitBuffer::getBuffer(){
 bool BitBuffer::setBuffer(string bits){
     if(bits.length()!=bufferLength)
         return false;
-    char now=0;
+    _Byte now=0;
     int position=0;
     for(int i=0;i<bits.length();i++){
         if(bits[i]=='1')now+=(1<<(ByteLen-i%ByteLen-1));
@@ -426,14 +405,14 @@ BitBuffer::~BitBuffer(){
 }
 
 // Debug - BitBuffer基类
-// #include<iostream>
-// int main(){
-//     BitBuffer buffer;
-//     buffer.setFitLength(12);
-//     cout<<buffer.setBuffer("101010100101010111111111")<<endl;
-//     cout<<buffer.getBuffer();
-//     return 0;
-// }
+//  #include<iostream>
+//  int main(){
+//      BitBuffer buffer;
+//      buffer.setFitLength(12);
+//      cout<<buffer.setBuffer("101010100101010111111000")<<endl;
+//      cout<<buffer.getBuffer();
+//      return 0;
+//  }
 
 
 /*--------------------------------------------
