@@ -63,7 +63,7 @@ int BitString::getLength(){
 返回值：
     bool - 比较的结果
 --------------------------------------------*/
-bool BitString::operator>(BitString bstr){
+bool BitString::operator>(BitString& bstr){
     int len = getLength();
     if(len > bstr.getLength())
         len=bstr.getLength();
@@ -72,16 +72,16 @@ bool BitString::operator>(BitString bstr){
             return data[i]>bstr.data[i];
     return getLength()>bstr.getLength();
 }
-bool BitString::operator<(BitString bstr){
+bool BitString::operator<(BitString& bstr){
     return !((*this)>=bstr);
 }
-bool BitString::operator>=(BitString bstr){    
+bool BitString::operator>=(BitString& bstr){
     return (((*this)>bstr) || ((*this)==bstr));
 }
-bool BitString::operator<=(BitString bstr){
+bool BitString::operator<=(BitString& bstr){
     return !((*this)>bstr);
 }
-bool BitString::operator==(BitString bstr){
+bool BitString::operator==(BitString& bstr){
     if(getLength()!=bstr.getLength())return false;
     int len=getLength();
     for(int i=0;i<getByteLen(len);i++)
@@ -89,7 +89,7 @@ bool BitString::operator==(BitString bstr){
             return false;
     return true;
 }
-bool BitString::operator!=(BitString bstr){
+bool BitString::operator!=(BitString& bstr){
     return !((*this)==bstr);
 }
 
@@ -159,18 +159,18 @@ BitString::~BitString(){
 }
 
 // Debug
-// #include<iostream>
-// int main(){
-//     BitString bitstr;
-//     bitstr.setLength(26);
+ //#include<iostream>
+ //int main(){
+ //    BitString bitstr;
+ //    bitstr.setLength(26);
 
-//     cout<<bitstr.setBitString("10101010010101011111111110")<<endl;
-//     cout<<bitstr.getBitString()<<endl;
+ //    cout<<bitstr.setBitString("11111111111111111111111111") << endl;
+ //    cout<<bitstr.getBitString()<<endl;
 
-//     BitString bitstr2;
-//     bitstr2.setLength(28);
-//     bitstr2.setBitString("1010101001010101111111111011");
-//     cout<<(bitstr>=bitstr2);//true 
-//     cout<<(bitstr<bitstr2);//false
-//     return 0;
-// }
+ //    BitString bitstr2;
+ //    bitstr2.setLength(26);
+ //    bitstr2.setBitString("00000000000000000000000000");
+ //    cout<<(bitstr>=bitstr2);//true 
+ //    cout<<(bitstr<bitstr2);//false
+ //    return 0;
+ //}

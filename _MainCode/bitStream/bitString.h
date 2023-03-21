@@ -74,12 +74,12 @@ class BitString{
 返回值：
     bool - 比较的结果
 --------------------------------------------*/
-        bool operator>(BitString bstr);
-        bool operator<(BitString bstr);
-        bool operator>=(BitString bstr);
-        bool operator<=(BitString bstr);
-        bool operator==(BitString bstr);
-        bool operator!=(BitString bstr);        
+        bool operator>(BitString& bstr);
+        bool operator<(BitString& bstr);
+        bool operator>=(BitString& bstr);
+        bool operator<=(BitString& bstr);
+        bool operator==(BitString& bstr);
+        bool operator!=(BitString& bstr);
 
 /*--------------------------------------------
 作用：

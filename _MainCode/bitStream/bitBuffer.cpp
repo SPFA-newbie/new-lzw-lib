@@ -46,7 +46,7 @@ void BitBuffer::setBufferLength(){
     无
 --------------------------------------------*/        
 void BitBuffer::setPosition(int pos){
-    if(pos>bufferLength)
+    if(pos>bufferLength || pos<0)
         throw BufferOverflowed();
     position=pos;
 }
@@ -82,17 +82,16 @@ void BitBuffer::offsetPosition(int offset){
 
 /*--------------------------------------------
 作用：
-    将游标移动到下一个位置
+    将游标移动到下一个匹配位置（移动fitLength位）
 参数：
     无
 返回值：
-    hasNext - 是否还能继续移动
-              失败表示游标已经移动到尾部
+    success - 移动是否成功
+              失败表示游标已经在尾部
 --------------------------------------------*/
 bool BitBuffer::nextPosition(){
     if(position==bufferLength)return false;
     position+=fitLength;
-    if(position==bufferLength)return false;
     return true;
 }
 
@@ -125,7 +124,7 @@ _Byte BitBuffer::makeMask(int begin, int end){
     _Byte mask=0;
     for(int i=0;i<ByteLen;i++) {
         if(i>=begin && i<end)mask++;
-        mask<<=1;
+        if(i!=ByteLen-1)mask<<=1;
     }
     return mask;
 }
@@ -218,7 +217,7 @@ void BitBuffer::setBitData(_Byte data, bool autoNext){
 --------------------------------------------*/          
 _Byte BitBuffer::getBitData(bool autoNext){
     _Byte data;
-    if((this->data[position/ByteLen])&makeMask(position%ByteLen,position%ByteLen+1)!=0){
+    if(((this->data[position/ByteLen])&makeMask(position%ByteLen,position%ByteLen+1))!=0){
         data=(_Byte)-1;
     }else data=(_Byte)0;
     if(autoNext)
@@ -405,14 +404,14 @@ BitBuffer::~BitBuffer(){
 }
 
 // Debug - BitBuffer基类
-//  #include<iostream>
-//  int main(){
-//      BitBuffer buffer;
-//      buffer.setFitLength(12);
-//      cout<<buffer.setBuffer("101010100101010111111000")<<endl;
-//      cout<<buffer.getBuffer();
-//      return 0;
-//  }
+//#include<iostream>
+//int main(){
+//    BitBuffer buffer;
+//    buffer.setFitLength(12);
+//    cout<<buffer.setBuffer("101010100101010111111000")<<endl;
+//    cout<<buffer.getBuffer();
+//    return 0;
+//}
 
 
 /*--------------------------------------------
