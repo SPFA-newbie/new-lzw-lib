@@ -1,8 +1,7 @@
 #pragma once
 
 #include<string>
-#include<ostream>
-#include<istream>
+#include<fstream>
 
 #define _Byte unsigned char
 
@@ -11,13 +10,14 @@ class BitBufferControllerFlag;
 
 //使用BitBuffer时不要直接使用这个类，而是使用它的两个子类（Input/OutputBitBuffer）
 class BitBuffer{
-	private:
+	protected:
 /*--------------------------------------------
 作用：
 	指示一个字节的大小
 --------------------------------------------*/ 
 		static const int ByteLen;
 
+    private:
 /*--------------------------------------------
 作用：
     求解两数的最大公约数，辅助求缓冲区长度
@@ -43,11 +43,6 @@ class BitBuffer{
 	private:
 /*--------------------------------------------
 作用：
-    存储数据的缓冲区主要部分
---------------------------------------------*/		
-        _Byte* data;
-/*--------------------------------------------
-作用：
     记录与缓冲区长度匹配的BitString的长度
     单位为位
 --------------------------------------------*/
@@ -66,6 +61,12 @@ class BitBuffer{
     单位为位
 --------------------------------------------*/		
 		int position;
+
+/*--------------------------------------------
+作用：
+    存储数据的缓冲区主要部分
+--------------------------------------------*/
+        _Byte* data;
     
     protected:
 /*--------------------------------------------
@@ -168,7 +169,7 @@ class BitBuffer{
     autoNext - 读取后是否移动游标，默认值为true
 返回值：
     data - 读取到的一个字节的数据
-           为0时返回0，为1时返回-1
+           为0时返回0，为1时返回255
 --------------------------------------------*/        
         _Byte getBitData(bool autoNext=true);
 /*--------------------------------------------
@@ -233,18 +234,18 @@ class BitBuffer{
 --------------------------------------------*/
 		void setFitLength(int fitLength);
 
-/*--------------------------------------------
-作用：
-    测试BitBuffer是否连接了文件流
-参数：
-    无
-返回值：
-    result - 缓冲区是否连接了文件流
-             连接时返回true
---------------------------------------------*/
-#ifndef DEBUG_FOR_BITBUFFER
-        virtual bool isStreamConnected() = 0;
-#endif
+///*--------------------------------------------
+//作用：
+//    测试BitBuffer是否连接了文件流
+//参数：
+//    无
+//返回值：
+//    result - 缓冲区是否连接了文件流
+//             连接时返回true
+//--------------------------------------------*/
+//#ifndef DEBUG_FOR_BITBUFFER
+//        virtual bool isStreamConnected() = 0;
+//#endif
 
 /*--------------------------------------------
 作用：
@@ -294,7 +295,22 @@ class BitBuffer{
 
 class InputBitBuffer : public BitBuffer{
 	private:		
-		std::ifstream* read;
+		std::ifstream read;
+        std::ifstream::pos_type beginPosition;
+        std::ifstream::off_type readLength;
+        int lastByte;
+
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否读取到了足够的字节
+    或到达了文件尾
+参数：
+    无
+返回值：
+    isEnd - 是否读取了足够字节或到达了末尾
+            到达时返回true
+--------------------------------------------*/
+        bool isEnd();
 
 	public:
 /*--------------------------------------------
@@ -313,45 +329,87 @@ class InputBitBuffer : public BitBuffer{
 参数：
     fitLength - 匹配的比特串的长度
                 为0时表示未初始化
-    readDocument - 绑定了文件的文件输入流
-                   将会从这个文件中读取字节流
+    readFile - 绑定了文件的文件输入流
+               将会从这个文件中读取字节流
+    pos - 文件指针初始位置
+    readLength - 读取的最大字节数
+                 0表示读到末尾
 返回值：
     无
 --------------------------------------------*/
-		InputBitBuffer(int fitLength, std::ifstream& readDocument);
+        InputBitBuffer(int fitLength, const char* readFile, std::ifstream::pos_type pos = 0, std::ifstream::off_type readLength = 0);
 		
 /*--------------------------------------------
 作用：
-    将一个输入文件流与InputBitBuffer连接
-    一个缓冲区只能有一个连接
-    在断开原有连接前，重复连接会抛出异常
+    打开一个文件
+    一个缓冲区只能打开一个文件
+    打开多个文件会抛出异常
 参数：
-    readDocument - 绑定了文件的文件输入流
-                   将会从这个文件中读取字节流
+    readFile - 欲读取文件的文件路径
+    pos - 文件指针的初始位置
+    readLength - 读取的最大字节数
+                 0表示读到末尾
 返回值：
     无
 --------------------------------------------*/
-		void connectStream(std::ifstream& readDocument);
+        void open(const char* readFile, std::ifstream::pos_type pos = 0, std::ifstream::off_type readLength = 0);
 /*--------------------------------------------
 作用：
-    断开InputBitBuffer与输入文件流的连接
-    断开不存在的连接会抛出异常
+   关闭打开的文件
+   关闭未打开的文件会抛出异常
+   关闭文件后缓冲区会被清空
 参数：
-    closeStream - 是否在断开连接的同时关闭文件流
-                  默认值为true
+    无
 返回值：
     无
 --------------------------------------------*/
-		void disconnectStream(bool closeStream=true);
+		void close();
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否打开了文件
+参数：
+    无
+返回值：
+    result - 缓冲区是否打开了文件
+             打开时返回true
+--------------------------------------------*/
+		bool isOpen();
 
-		bool isStreamConnected();
-		//Buffer操作
-		InputBitBuffer& operator>>(BitString bits);
-		bool close(bool closeStream=true);
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否完成全部读取任务
+    即：
+    从文件中读取出了规定的字节数
+    且自身缓存的字节全部被释放
+参数：
+    无
+返回值：
+    result - 缓冲区是否完成读取任务
+             完成时返回true
+--------------------------------------------*/
+        bool finish();
 
-		//析构函数
+/*--------------------------------------------
+作用：
+    将缓冲区中的数据赋值给BitString
+参数：
+    bits - 目标BitString
+返回值：
+    this - 缓冲区自身
+--------------------------------------------*/
+		InputBitBuffer& operator>>(BitString& bits);
+
+/*--------------------------------------------
+作用：
+    InputBitBuffer的析构函数
+参数：
+    无
+返回值：
+    无
+--------------------------------------------*/
 		~InputBitBuffer();
 };
+
 
 class OutputBitBuffer : public BitBuffer{
 	private:
@@ -415,7 +473,7 @@ class OutputBitBuffer : public BitBuffer{
 --------------------------------------------*/
 		bool isStreamConnected();
 		//Buffer操作
-		OutputBitBuffer& operator<<(BitString bits);
+		OutputBitBuffer& operator<<(BitString& bits);
 		OutputBitBuffer& operator<<(BitBufferControllerFlag controller);
 		bool close(bool closeStream=true);
 

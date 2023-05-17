@@ -27,13 +27,13 @@ class MismatchLengthException : public BitOperationException{
 };
 
 //文件流连接相关异常
-class MultipleConnectionException : public BitOperationException{
+class MultipleOpenFileException : public BitOperationException{
     public:
-        char const* what(){return "试图为缓冲区创建多个连接";}
+        char const* what(){return "试图使缓冲区打开多个文件";}
 };
-class UnconnectException : public BitOperationException{
+class ClosedFileException : public BitOperationException{
     public:
-        char const* what(){return "对未连接的缓冲区进行流操作";}
+        char const* what(){return "对未打开文件的缓冲区进行流操作";}
 };
 
 //输入输出相关异常

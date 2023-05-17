@@ -1,5 +1,9 @@
+#define DEBUG_FOR_BITBUFFER
+
 #include<string>
+#include<cassert>
 #include<fstream>
+#include"bitString.h"
 #include"bitBuffer.h"
 #include"bitException.h"
 using namespace std;
@@ -33,8 +37,9 @@ int BitBuffer::gcd(int n1, int n2){
     无，直接改变函数内数据
 --------------------------------------------*/ 
 void BitBuffer::setBufferLength(){
-    bufferLength=fitLength*ByteLen/gcd(fitLength, ByteLen);
-    data=new _Byte[bufferLength/ByteLen];
+    bufferLength = fitLength * ByteLen / gcd(fitLength, ByteLen);
+    data = new _Byte[bufferLength / ByteLen];
+    memset(this->data, 0, bufferLength / ByteLen);
 }
 
 /*--------------------------------------------
@@ -104,7 +109,7 @@ bool BitBuffer::nextPosition(){
     无
 --------------------------------------------*/
 void BitBuffer::resetPosition(){
-    position=0;
+    this->position=0;
 }
 
 /*--------------------------------------------
@@ -213,7 +218,7 @@ void BitBuffer::setBitData(_Byte data, bool autoNext){
     autoNext - 读取后是否移动游标，默认值为true
 返回值：
     data - 读取到的一个字节的数据
-           为0时返回0，为1时返回-1
+           为0时返回0，为1时返回255
 --------------------------------------------*/          
 _Byte BitBuffer::getBitData(bool autoNext){
     _Byte data;
@@ -235,20 +240,19 @@ _Byte BitBuffer::getBitData(bool autoNext){
     无
 --------------------------------------------*/
 void BitBuffer::setFitData(_Byte* data, bool autoNext){
-    int fullByte=fitLength/ByteLen;
-    int fragmentBit=fitLength%ByteLen+1;
-    int nowPosition=position;
-    for(int i=0;i<fullByte;i++)
+    int nowPosition = position;
+    int completeByte = fitLength / ByteLen;
+    for (int i = 0; i < completeByte; i++)
         setByteData(data[i]);
-    
-    //低效部分，需要修改
-    int& last=fullByte;
-    for(int i=0;i<fragmentBit;i++){
-        setBitData(data[last]&makeMask(i, i+1));
+    int fragmentBit = fitLength % ByteLen;
+    _Byte mask = makeMask(0, 1);
+    for (int i = 0; i < fragmentBit; i++) {
+        setBitData(data[completeByte] & mask);
+        mask >>= 1;
     }
-
-    if(!autoNext)
-        position=nowPosition;
+    if (!autoNext)
+        position = nowPosition;
+    return;
 }
 
 /*--------------------------------------------
@@ -260,26 +264,25 @@ void BitBuffer::setFitData(_Byte* data, bool autoNext){
     data - 一个指向读取到的数据的指针（_Byte*）
 --------------------------------------------*/
 _Byte* BitBuffer::getFitData(bool autoNext){
-    int byteNum=fitLength/ByteLen;
-    int fullByte=byteNum;
-    int fragmentBit=fitLength%ByteLen;
-    if(fragmentBit!=0)byteNum++;
-    int nowPosition=position;
+    int nowPosition = position;
+    int completeByte = fitLength / ByteLen;
+    int fragmentBit = fitLength % ByteLen;
+    _Byte* ret = new _Byte[fragmentBit == 0 ? completeByte : completeByte + 1];
     
-    _Byte* data=new _Byte[byteNum];
-    for(int i=0;i<fullByte;i++)
-        data[i]=getByteData();
+    for (int i = 0; i < completeByte; i++)
+        ret[i] = getByteData();
     
-    //低效部分，需要修改
-    int& last=fullByte;
-    data[last]=0;
-    for(int i=0;i<fragmentBit;i++){
-        data[last]|=(getByteData()&makeMask(i, i+1));
-    }
+    _Byte mask = makeMask(0, 1);
 
-    if(!autoNext)
-        position=nowPosition;
-    return data;
+    if (fragmentBit != 0)
+        ret[completeByte] = 0;
+    for (int i = 0; i < fragmentBit; i++) {
+        ret[completeByte] += mask & getBitData();
+        mask >>= 1;
+    }
+    if (!autoNext)
+        position = nowPosition;
+    return ret;
 }
 
 /*--------------------------------------------
@@ -292,8 +295,11 @@ _Byte* BitBuffer::getFitData(bool autoNext){
     无
 --------------------------------------------*/ 
 BitBuffer::BitBuffer(int fitLength){
-    this->fitLength=fitLength;
-    if(fitLength!=0)
+    this->fitLength = fitLength;
+    this->bufferLength = 0;
+    this->data = nullptr;
+    this->position = 0;
+    if (fitLength != 0)
         setBufferLength();
 }
 
@@ -413,6 +419,21 @@ BitBuffer::~BitBuffer(){
 //    return 0;
 //}
 
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否读取到了足够的字节
+    或到达了文件尾
+参数：
+    无
+返回值：
+    isEnd - 是否读取了足够字节或到达了末尾
+            到达时返回true
+--------------------------------------------*/
+bool InputBitBuffer::isEnd() {
+    if (this->readLength == 0)
+        return read.eof();
+    return read.tellg() >= this->beginPosition + this->readLength;
+}
 
 /*--------------------------------------------
 作用：
@@ -424,7 +445,8 @@ BitBuffer::~BitBuffer(){
     无
 --------------------------------------------*/
 InputBitBuffer::InputBitBuffer(int fitLength) : BitBuffer(fitLength){
-    read=nullptr;
+    resetPosition();
+    offsetPosition(getBufferLength());
 }
 
 /*--------------------------------------------
@@ -433,63 +455,126 @@ InputBitBuffer::InputBitBuffer(int fitLength) : BitBuffer(fitLength){
 参数：
     fitLength - 匹配的比特串的长度
                 为0时表示未初始化
-    readDocument - 绑定了文件的文件输入流
-                   将会从这个文件中读取字节流
+    readFile - 绑定了文件的文件输入流
+               将会从这个文件中读取字节流
+    pos - 文件指针初始位置
+    readLength - 读取的最大字节数
+                 0表示读到末尾
 返回值：
     无
 --------------------------------------------*/
-InputBitBuffer::InputBitBuffer(int fitLength, ifstream& readDocument) : BitBuffer(fitLength){
-    read=(&readDocument);
+InputBitBuffer::InputBitBuffer(int fitLength, const char* readFile, ifstream::pos_type pos = 0, ifstream::off_type readLength = 0) : BitBuffer(fitLength){
+    open(readFile, pos, readLength);
 }
 
 /*--------------------------------------------
 作用：
-    将一个输入文件流与InputBitBuffer连接
-    一个缓冲区只能有一个连接
-    在断开原有连接前，重复连接会抛出异常
+    打开一个文件
+    一个缓冲区只能打开一个文件
+    打开多个文件会抛出异常
 参数：
-    readDocument - 绑定了文件的文件输入流
-                   将会从这个文件中读取字节流
+    readFile - 欲读取文件的文件路径
+    pos - 文件指针的初始位置
+    readLength - 读取的最大字节数
+                 0表示读到末尾
 返回值：
     无
 --------------------------------------------*/
-void InputBitBuffer::connectStream(ifstream& readDocument){
-    if(read!=nullptr)
-        throw MultipleConnectionException();
-    read=(&readDocument);
+void InputBitBuffer::open(const char* readFile, ifstream::pos_type pos, ifstream::off_type readLength = 0) {
+    if (read.is_open())
+        throw MultipleOpenFileException();
+    read.open(readFile, ios::in | ios::binary);
+    read.seekg(pos);
+    this->readLength = readLength;
+    this->beginPosition = pos;
+
+    resetPosition();
+    offsetPosition(getBufferLength());
 }
 
 /*--------------------------------------------
 作用：
-    断开InputBitBuffer与输入文件流的连接
-    断开不存在的连接会抛出异常
+   关闭打开的文件
+   关闭未打开的文件会抛出异常
+   关闭文件后缓冲区会被清空
 参数：
-    closeStream - 是否在断开连接的同时关闭文件流
-                  默认值为true
+    无
 返回值：
     无
 --------------------------------------------*/
-void InputBitBuffer::disconnectStream(bool closeStream){
-    if(read==nullptr)
-        throw UnconnectException();
-    if(closeStream)
-        read->close();
-    read=nullptr;
+void InputBitBuffer::close() {
+    if (read.is_open() == false)
+        throw ClosedFileException();
+    resetPosition();
+    read.close();
 }
 
 /*--------------------------------------------
 作用：
-    测试InputBitBuffer是否连接了文件流
+    测试InputBitBuffer是否打开了文件
 参数：
     无
 返回值：
-    result - 缓冲区是否连接了文件流
-             连接时返回true
+    result - 缓冲区是否打开了文件
+             打开时返回true
 --------------------------------------------*/
-bool InputBitBuffer::isStreamConnected(){
-    return read!=nullptr;
+bool InputBitBuffer::isOpen() {
+    return read.is_open();
 }
 
+/*--------------------------------------------
+作用：
+    测试InputBitBuffer是否完成全部读取任务
+    即：
+    从文件中读取出了规定的字节数
+    且自身缓存的字节全部被释放
+参数：
+    无
+返回值：
+    result - 缓冲区是否完成读取任务
+             完成时返回true
+--------------------------------------------*/
+bool InputBitBuffer::finish() {
+    return isEnd() && getPosition() / ByteLen > lastByte;
+}
+
+/*--------------------------------------------
+作用：
+    将缓冲区中的数据导出到BitString中
+参数：
+    bits - 导出目标
+返回值：
+    this - 缓冲区自身
+--------------------------------------------*/
+InputBitBuffer& InputBitBuffer::operator>>(BitString& bits) {
+    if (getPosition() == getBufferLength()) {
+        resetPosition();
+        lastByte = -1;
+        for (int i = 0; i < getBufferLength() / ByteLen; i++) {
+            if (isEnd() == false) {
+                _Byte nextByte;
+                read.read((char*)&nextByte, 1);
+                setByteData(nextByte);
+                lastByte = i;
+            } else setByteData((_Byte)0);
+        }
+        resetPosition();
+    }
+    bits.data = getFitData();
+    return *this;
+}
+
+/*--------------------------------------------
+作用：
+    InputBitBuffer的析构函数
+参数：
+    无
+返回值：
+    无
+--------------------------------------------*/
+InputBitBuffer::~InputBitBuffer() {
+    read.close();
+}
 
 
 /*--------------------------------------------

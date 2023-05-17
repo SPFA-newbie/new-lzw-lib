@@ -31,8 +31,8 @@ class BitString{
 		_Byte* data;		
 		int  bitLength;
 
-		friend InputBitBuffer& InputBitBuffer::operator>>(BitString bits);
-		friend OutputBitBuffer& OutputBitBuffer::operator<<(BitString bits);
+		friend InputBitBuffer& InputBitBuffer::operator>>(BitString& bits);
+		friend OutputBitBuffer& OutputBitBuffer::operator<<(BitString& bits);
 	
 	public:
 /*--------------------------------------------
