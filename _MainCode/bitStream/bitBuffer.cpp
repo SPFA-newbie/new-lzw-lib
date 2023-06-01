@@ -587,7 +587,7 @@ InputBitBuffer::~InputBitBuffer() {
     无
 --------------------------------------------*/
 OutputBitBuffer::OutputBitBuffer(int fitLength) : BitBuffer(fitLength){
-    write=nullptr;
+    
 }
 
 /*--------------------------------------------
@@ -596,13 +596,12 @@ OutputBitBuffer::OutputBitBuffer(int fitLength) : BitBuffer(fitLength){
 参数：
     fitLength - 匹配的比特串的长度
                 为0时表示未初始化
-    writeDocument - 绑定了文件的文件输出流
-                    将会向这个文件中写入字节流
+    writeFile - 将要进行输出的文件名
 返回值：
     无
 --------------------------------------------*/
-OutputBitBuffer::OutputBitBuffer(int fitLength, ofstream& writeDocument) : BitBuffer(fitLength){
-    write=(&writeDocument);
+OutputBitBuffer::OutputBitBuffer(int fitLength, const char* writeFile) : BitBuffer(fitLength) {
+
 }
 
 /*--------------------------------------------
